@@ -5,7 +5,7 @@
  * published by the Free Software Foundation.
  */
 
-//#define FILL_BEFORE_FLUSH
+#define FILL_BEFORE_FLUSH
 
 #include "GraphicsTranslator.h"
 
@@ -15,11 +15,17 @@ void GraphicsTranslatorClass::begin(uint32_t _bufferSize) {
 	bufferSize = _bufferSize;
 	if (bufferSize < 1024)
 		bufferSize = 1024;
-	buffer1 = (uint32_t *) malloc(2 * bufferSize * sizeof(uint32_t));
-	buffer2 = buffer1 + bufferSize;
+	buffer = (uint32_t *) malloc(MAX_BUFFERS * bufferSize * sizeof(uint32_t));
 
+  uint32_t *p_buf = buffer;
+  for (int i = 0; i < MAX_BUFFERS; i++) {
+    buffers[i] = p_buf;
+    p_buf += bufferSize;
+  }
+
+  freeBuffers = MAX_BUFFERS;
   bufferCounter = 0;
-  currBuffer = buffer1;
+  currBuffer = buffers[0];
 
   currX = 0;
   currY = 0;
@@ -33,22 +39,23 @@ void GraphicsTranslatorClass::begin(uint32_t _bufferSize) {
 
 void GraphicsTranslatorClass::end() {
 	dac->end();
-	free(buffer1);
+	free(buffer);
 }
 
 void GraphicsTranslatorClass::flush() {
   if (!bufferCounter)
     return;
-    
+
   while (!dac->canQueue());
   DAC.queueBuffer(currBuffer, bufferCounter);
+  freeBuffers--;
   
   bufferCounter = 0;
-  if (currBuffer == buffer1) {
-    currBuffer = buffer2;
+  if (currBuffer == buffers[0]) {
+    currBuffer = buffers[1];
   }
-  else if (currBuffer == buffer2) {
-    currBuffer = buffer1;
+  else if (currBuffer == buffers[1]) {
+    currBuffer = buffers[0];
   }
 }
 
@@ -82,6 +89,8 @@ void GraphicsTranslatorClass::plot_absolute(uint16_t X, uint16_t Y) {
     currY = Y;
     return;
   }
+
+  while (freeBuffers <= 0);
 
   x0 = currX;
   y0 = currY;
@@ -134,6 +143,10 @@ void GraphicsTranslatorClass::plot_absolute(uint16_t X, uint16_t Y) {
  
 void GraphicsTranslatorClass::onTransmitEnd(void *_me) {
 	GraphicsTranslatorClass *me = reinterpret_cast<GraphicsTranslatorClass *> (_me);
+
+  if (++me->freeBuffers > me->MAX_BUFFERS) {
+    me->freeBuffers = me->MAX_BUFFERS;
+  }
 }
 
 GraphicsTranslatorClass GraphicsTranslator(DAC);

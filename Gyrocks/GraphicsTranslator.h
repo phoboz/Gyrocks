@@ -26,12 +26,15 @@ public:
 private:
 	static void onTransmitEnd(void *me);
 	void flush();
-    
+
+  static const int MAX_BUFFERS = 2;
+
 	uint32_t bufferSize;
-	uint32_t *buffer1;
-  uint32_t *buffer2;
-  
-  uint32_t bufferCounter;
+  uint32_t *buffer;
+	uint32_t *buffers[MAX_BUFFERS];
+
+  volatile int freeBuffers;
+  int bufferCounter;
   uint32_t *currBuffer;
 
   uint16_t currX, currY;

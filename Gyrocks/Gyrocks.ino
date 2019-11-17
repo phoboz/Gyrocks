@@ -40,6 +40,8 @@
 //#define FLIP_X
 //#define FLIP_Y
 
+#define BUFFER_SIZE 4096
+
 /*  *********************** Game Stuff ***************************************************/
 
 // Rock
@@ -253,7 +255,7 @@ void draw_string(const char * s, int x, int y, int size)
 void setup()
 {
   Serial.begin(9600); // baud rate is ignored
-  GraphicsTranslator.begin(4096);
+  GraphicsTranslator.begin(BUFFER_SIZE);
   GraphicsTranslator.interpolate_move = false;  
   init_stars(s);
 }
