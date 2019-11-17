@@ -39,7 +39,7 @@
 // Sometimes the X and Y need to be flipped and/or swapped
 //#define FLIP_X
 //#define FLIP_Y
-//#define SLOW_MOVE
+#define SLOW_MOVE
 
 #define BUFFER_SIZE 4096
 
