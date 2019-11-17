@@ -54,6 +54,9 @@ void GraphicsTranslatorClass::flush() {
     currBuffer = buffers[1];
   }
   else if (currBuffer == buffers[1]) {
+    currBuffer = buffers[2];
+  }
+  else if (currBuffer == buffers[2]) {
     currBuffer = buffers[0];
   }
 }
