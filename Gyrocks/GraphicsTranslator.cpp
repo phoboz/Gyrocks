@@ -90,8 +90,6 @@ void GraphicsTranslatorClass::plot_absolute(uint16_t X, uint16_t Y) {
     return;
   }
 
-  while (freeBuffers <= 0);
-
   x0 = currX;
   y0 = currY;
   x1 = X;
@@ -128,8 +126,10 @@ void GraphicsTranslatorClass::plot_absolute(uint16_t X, uint16_t Y) {
       err = err + dx;
       currY = (y0 += sy);
     }
-  
+
+    while (freeBuffers <= 0);
     currBuffer[bufferCounter++] = DAC_PACK_COORD(currX, currY);
+    
 #ifdef FILL_BEFORE_FLUSH
     if (bufferCounter == bufferSize) {
       flush();
