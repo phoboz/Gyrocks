@@ -5,11 +5,10 @@
  * published by the Free Software Foundation.
  */
 
-#define FILL_BEFORE_FLUSH
-
 #include "GraphicsTranslator.h"
 
 bool GraphicsTranslatorClass::interpolate_move = true;
+const int GraphicsTranslatorClass::dwellAfterMove = 10;
 
 void GraphicsTranslatorClass::begin(uint32_t _bufferSize) {
 	bufferSize = _bufferSize;
@@ -60,10 +59,8 @@ void GraphicsTranslatorClass::flush() {
 }
 
 void GraphicsTranslatorClass::frame_end() {
-#ifdef FILL_BEFORE_FLUSH
-  //currBuffer[bufferCounter++] = DAC_PACK_COORD(0, 0);
   flush();
-#endif
+  
   currPen = 0;
   currX = 0;
   currY = 0;
@@ -72,28 +69,39 @@ void GraphicsTranslatorClass::frame_end() {
 void GraphicsTranslatorClass::pen_enable(uint8_t D) {
   if (currPen != D) {
     currPen = D;
-#ifdef FILL_BEFORE_FLUSH
-    flush();
-#endif
+    //flush();
   }
 }
 
-void GraphicsTranslatorClass::plot_absolute(uint16_t X, uint16_t Y) {
+void GraphicsTranslatorClass::move(uint16_t x, uint16_t y) {
+  if (interpolate_move) {
+    currX = x;
+    currY = y;
+      
+    for (int i; i < dwellAfterMove; i++) {
+      while (freeBuffers <= 0);
+      currBuffer[bufferCounter++] = DAC_PACK_COORD(currX, currY);
+      if (bufferCounter == bufferSize) {
+        flush();
+      }
+    }    
+  }
+  else {
+    currX = x;
+    currY = y;
+  }
+}
+
+void GraphicsTranslatorClass::line(uint16_t x, uint16_t y) {
   int16_t dx, dy;
   int16_t sx, sy;
   uint16_t x0, y0;
   uint16_t x1, y1;
 
-  if (!currPen && !interpolate_move) {
-    currX = X;
-    currY = Y;
-    return;
-  }
-
   x0 = currX;
   y0 = currY;
-  x1 = X;
-  y1 = Y;
+  x1 = x;
+  y1 = y;
   
   if (x0 <= x1) {
     dx = x1 - x0;
@@ -129,17 +137,21 @@ void GraphicsTranslatorClass::plot_absolute(uint16_t X, uint16_t Y) {
 
     while (freeBuffers <= 0);
     currBuffer[bufferCounter++] = DAC_PACK_COORD(currX, currY);
-#ifdef FILL_BEFORE_FLUSH
     if (bufferCounter == bufferSize) {
       flush();
     }
-#endif
   }
-#ifndef FILL_BEFORE_FLUSH
-  flush();
-#endif
 }
- 
+
+void GraphicsTranslatorClass::plot_absolute(uint16_t X, uint16_t Y) { 
+  if (currPen) {
+    line(X, Y);
+  }
+  else {  
+    move(X, Y);
+  }
+}
+
 void GraphicsTranslatorClass::onTransmitEnd(void *_me) {
 	GraphicsTranslatorClass *me = reinterpret_cast<GraphicsTranslatorClass *> (_me);
 

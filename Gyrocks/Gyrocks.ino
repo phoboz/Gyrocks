@@ -39,6 +39,7 @@
 // Sometimes the X and Y need to be flipped and/or swapped
 //#define FLIP_X
 //#define FLIP_Y
+//#define SLOW_MOVE
 
 #define BUFFER_SIZE 4096
 
@@ -188,19 +189,35 @@ int icos(int x)
 
 void moveto(int x, int y)
 {
+  uint16_t px, py;
+  
   //Test!  Very stupid "Clipping"
   if (x >= 4096) x = 4095;
   if (y >= 4096) y = 4095;
   if (x < 0) x = 0;
   if (y < 0) y = 0;
-  
+
+  #ifdef FLIP_X
+  px = 4095 - (x & 0xFFF);
+#else
+  px = x & 0xFFF;
+#endif
+
+#ifdef FLIP_Y
+  py = 4095 - (y & 0xFFF);
+#else
+  py = y & 0xFFF;
+#endif
+
   GraphicsTranslator.pen_enable(0);
-  GraphicsTranslator.plot_absolute(x, y);
+  GraphicsTranslator.plot_absolute(px, py);
 }
 
 
 void lineto(int x, int y)
 {
+  uint16_t px, py;
+  
   //Test!  Very stupid "Clipping"
   //if (x>=4096 ||x<0 ||y>4096 || y<0) return; //don't draw at all
   if (x >= 4096) x = 4095;
@@ -208,8 +225,20 @@ void lineto(int x, int y)
   if (x < 0) x = 0;
   if (y < 0) y = 0;
 
+#ifdef FLIP_X
+  px = 4095 - (x & 0xFFF);
+#else
+  px = x & 0xFFF;
+#endif
+
+#ifdef FLIP_Y
+  py = 4095 - (y & 0xFFF);
+#else
+  py = y & 0xFFF;
+#endif
+
   GraphicsTranslator.pen_enable(1);
-  GraphicsTranslator.plot_absolute(x, y);
+  GraphicsTranslator.plot_absolute(px, py);
 
 }
 
@@ -256,7 +285,11 @@ void setup()
 {
   Serial.begin(9600); // baud rate is ignored
   GraphicsTranslator.begin(BUFFER_SIZE);
+#ifdef SLOW_MOVE
+  GraphicsTranslator.interpolate_move = true;  
+#else
   GraphicsTranslator.interpolate_move = false;  
+#endif
   init_stars(s);
 }
 

@@ -26,9 +26,13 @@ public:
 private:
 	static void onTransmitEnd(void *me);
 	void flush();
+ 
+  void line(uint16_t x, uint16_t y);
+  void move(uint16_t x, uint16_t y);
 
   static const int MAX_BUFFERS = 2;
-
+  static const int dwellAfterMove;
+  
 	uint32_t bufferSize;
   uint32_t *buffer;
 	uint32_t *buffers[MAX_BUFFERS];
