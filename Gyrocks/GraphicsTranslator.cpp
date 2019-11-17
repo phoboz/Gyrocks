@@ -60,13 +60,13 @@ void GraphicsTranslatorClass::flush() {
 }
 
 void GraphicsTranslatorClass::frame_end() {
+#ifdef FILL_BEFORE_FLUSH
+  //currBuffer[bufferCounter++] = DAC_PACK_COORD(0, 0);
+  flush();
+#endif
   currPen = 0;
   currX = 0;
   currY = 0;
-#ifdef FILL_BEFORE_FLUSH
-  currBuffer[bufferCounter++] = DAC_PACK_COORD(currX, currY);
-  flush();
-#endif
 }
 
 void GraphicsTranslatorClass::pen_enable(uint8_t D) {
@@ -129,7 +129,6 @@ void GraphicsTranslatorClass::plot_absolute(uint16_t X, uint16_t Y) {
 
     while (freeBuffers <= 0);
     currBuffer[bufferCounter++] = DAC_PACK_COORD(currX, currY);
-    
 #ifdef FILL_BEFORE_FLUSH
     if (bufferCounter == bufferSize) {
       flush();
