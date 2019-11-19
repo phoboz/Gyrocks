@@ -13,7 +13,15 @@
 
 #include "Arduino.h"
 
+#define RESOLUTION_2K
+
+#if defined(RESOLUTION_1K)
+#define DAC_PACK_COORD(_x, _y) (((0x0FFF & (_x)) << 2) | ((0x0FFF & (_y)) << 18) | 0x10000000)
+#elif defined(RESOLUTION_2K)
+#define DAC_PACK_COORD(_x, _y) (((0x0FFF & (_x)) << 1) | ((0x0FFF & (_y)) << 17) | 0x10000000)
+#else /* RESOLUTION_4K */
 #define DAC_PACK_COORD(_x, _y) ((0x0FFF & (_x)) | ((0x0FFF & (_y)) << 16) | 0x10000000)
+#endif
 
 typedef void (*OnTransmitEnd_CB)(void *data);
 

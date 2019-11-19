@@ -12,8 +12,6 @@ const int GraphicsTranslatorClass::dwellAfterMove = 10;
 
 void GraphicsTranslatorClass::begin(uint32_t _bufferSize) {
 	bufferSize = _bufferSize;
-	if (bufferSize < 1024)
-		bufferSize = 1024;
 	buffer = (uint32_t *) malloc(MAX_BUFFERS * bufferSize * sizeof(uint32_t));
 
   uint32_t *p_buf = buffer;
@@ -21,7 +19,7 @@ void GraphicsTranslatorClass::begin(uint32_t _bufferSize) {
     buffers[i] = p_buf;
     p_buf += bufferSize;
   }
-
+  
   freeBuffers = MAX_BUFFERS;
   bufferCounter = 0;
   currBuffer = buffers[0];
@@ -41,28 +39,30 @@ void GraphicsTranslatorClass::end() {
 	free(buffer);
 }
 
-void GraphicsTranslatorClass::flush() {
-  if (!bufferCounter)
+void GraphicsTranslatorClass::nextBuffer() {
+  if (!bufferCounter) {
     return;
+  }
 
   while (!dac->canQueue());
+  noInterrupts();
   DAC.queueBuffer(currBuffer, bufferCounter);
   freeBuffers--;
+  interrupts();
+
+  while (freeBuffers <= 0);
   
   bufferCounter = 0;
   if (currBuffer == buffers[0]) {
     currBuffer = buffers[1];
   }
   else if (currBuffer == buffers[1]) {
-    currBuffer = buffers[2];
-  }
-  else if (currBuffer == buffers[2]) {
     currBuffer = buffers[0];
   }
 }
 
 void GraphicsTranslatorClass::frame_end() {
-  flush();
+  nextBuffer();
   
   currPen = 0;
   currX = 0;
@@ -72,7 +72,7 @@ void GraphicsTranslatorClass::frame_end() {
 void GraphicsTranslatorClass::pen_enable(uint8_t D) {
   if (currPen != D) {
     currPen = D;
-    //flush();
+    //nextBuffer();
   }
 }
 
@@ -82,10 +82,9 @@ void GraphicsTranslatorClass::move(uint16_t x, uint16_t y) {
     currY = y;
       
     for (int i; i < dwellAfterMove; i++) {
-      while (freeBuffers <= 0);
       currBuffer[bufferCounter++] = DAC_PACK_COORD(currX, currY);
       if (bufferCounter == bufferSize) {
-        flush();
+        nextBuffer();
       }
     }    
   }
@@ -138,12 +137,12 @@ void GraphicsTranslatorClass::line(uint16_t x, uint16_t y) {
       currY = (y0 += sy);
     }
 
-    while (freeBuffers <= 0);
     currBuffer[bufferCounter++] = DAC_PACK_COORD(currX, currY);
     if (bufferCounter == bufferSize) {
-      flush();
+      nextBuffer();
     }
   }
+  nextBuffer();
 }
 
 void GraphicsTranslatorClass::plot_absolute(uint16_t X, uint16_t Y) { 

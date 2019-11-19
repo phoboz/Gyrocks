@@ -41,7 +41,8 @@
 //#define FLIP_Y
 #define SLOW_MOVE
 
-#define BUFFER_SIZE 4096
+#define SIZE_SHIFT  2
+#define BUFFER_SIZE 1024
 
 /*  *********************** Game Stuff ***************************************************/
 
@@ -210,7 +211,7 @@ void moveto(int x, int y)
 #endif
 
   GraphicsTranslator.pen_enable(0);
-  GraphicsTranslator.plot_absolute(px, py);
+  GraphicsTranslator.plot_absolute(px >> SIZE_SHIFT, py >> SIZE_SHIFT);
 }
 
 
@@ -238,7 +239,7 @@ void lineto(int x, int y)
 #endif
 
   GraphicsTranslator.pen_enable(1);
-  GraphicsTranslator.plot_absolute(px, py);
+  GraphicsTranslator.plot_absolute(px >> SIZE_SHIFT, py >> SIZE_SHIFT);
 
 }
 

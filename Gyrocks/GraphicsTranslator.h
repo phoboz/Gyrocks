@@ -25,7 +25,7 @@ public:
 
 private:
 	static void onTransmitEnd(void *me);
-	void flush();
+	void nextBuffer();
  
   void line(uint16_t x, uint16_t y);
   void move(uint16_t x, uint16_t y);
