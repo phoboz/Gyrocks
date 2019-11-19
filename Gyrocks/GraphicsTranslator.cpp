@@ -45,8 +45,8 @@ void GraphicsTranslatorClass::nextBuffer() {
   }
 
   while (!dac->canQueue());
-  noInterrupts();
   DAC.queueBuffer(currBuffer, bufferCounter);
+  noInterrupts();
   freeBuffers--;
   interrupts();
 
