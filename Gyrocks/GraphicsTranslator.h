@@ -30,7 +30,7 @@ private:
   void line(uint16_t x, uint16_t y);
   void move(uint16_t x, uint16_t y);
 
-  static const int MAX_BUFFERS = 3;
+  static const int MAX_BUFFERS = 2;
   static const int dwellAfterMove;
   
 	uint32_t bufferSize;
