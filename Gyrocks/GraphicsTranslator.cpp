@@ -5,12 +5,15 @@
  * published by the Free Software Foundation.
  */
 
+#include "RGBDAC.h"
 #include "GraphicsTranslator.h"
 
 bool GraphicsTranslatorClass::interpolate_move = true;
-const int GraphicsTranslatorClass::dwellAfterMove = 10;
 
 void GraphicsTranslatorClass::begin(uint32_t _bufferSize) {
+  if (_bufferSize < dwellAfterMove) {
+    bufferSize = dwellAfterMove;
+  }
 	bufferSize = _bufferSize;
 	buffer = (uint32_t *) malloc(MAX_BUFFERS * bufferSize * sizeof(uint32_t));
 
@@ -29,12 +32,23 @@ void GraphicsTranslatorClass::begin(uint32_t _bufferSize) {
 
   currPen = 0;
 
+  pens[0].r = pens[0].g = pens[0].b = 0;
+  pens[1].r = pens[1].g = pens[1].b = 255;
+
+  pinMode(Z_BLANK_PIN, OUTPUT);
+  digitalWrite(Z_BLANK_PIN, LOW);
+  
+  setupRGBDAC();
+  writeRGB_DACs(0, 0, 0);
+  flushedPen = MAX_PENS + 1;
+
 	// Start DAC
 	dac->begin(16);
 	dac->setOnTransmitEnd_CB(onTransmitEnd, this);
 }
 
 void GraphicsTranslatorClass::end() {
+  frame_end();
 	dac->end();
 	free(buffer);
 }
@@ -43,9 +57,20 @@ void GraphicsTranslatorClass::nextBuffer() {
   if (!bufferCounter) {
     return;
   }
-
+  
   while (!dac->canQueue());
-  DAC.queueBuffer(currBuffer, bufferCounter);
+  
+  if (currPen != flushedPen) {
+    if (currPen != 0 && flushedPen != 0) {
+      writeRGB_DACs(pens[currPen].r, pens[currPen].g, pens[currPen].b); 
+      flushedPen = currPen;
+    }
+  }
+  if (currPen) {
+    digitalWrite(Z_BLANK_PIN, HIGH);
+  }
+
+  DAC.queueBuffer(currBuffer, bufferCounter); 
   noInterrupts();
   freeBuffers--;
   interrupts();
@@ -70,9 +95,11 @@ void GraphicsTranslatorClass::frame_end() {
 }
 
 void GraphicsTranslatorClass::pen_enable(uint8_t D) {
-  if (currPen != D) {
-    currPen = D;
-    //nextBuffer();
+  if (D < MAX_PENS) {
+    if (currPen != D) {
+      nextBuffer();
+      currPen = D;
+    }
   }
 }
 
@@ -84,9 +111,12 @@ void GraphicsTranslatorClass::move(uint16_t x, uint16_t y) {
     for (int i; i < dwellAfterMove; i++) {
       currBuffer[bufferCounter++] = DAC_PACK_COORD(currX, currY);
       if (bufferCounter == bufferSize) {
-        nextBuffer();
+        break;
       }
-    }    
+    }
+    if (bufferCounter == bufferSize) {
+      nextBuffer();
+    }
   }
   else {
     currX = x;
@@ -156,7 +186,8 @@ void GraphicsTranslatorClass::plot_absolute(uint16_t X, uint16_t Y) {
 
 void GraphicsTranslatorClass::onTransmitEnd(void *_me) {
 	GraphicsTranslatorClass *me = reinterpret_cast<GraphicsTranslatorClass *> (_me);
-
+  digitalWrite(Z_BLANK_PIN, LOW);
+  
   if (++me->freeBuffers > me->MAX_BUFFERS) {
     me->freeBuffers = me->MAX_BUFFERS;
   }

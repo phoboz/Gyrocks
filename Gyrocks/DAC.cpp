@@ -9,6 +9,7 @@
  */
 
 #include "DAC.h"
+#define DAC_ONE_QUEUE
 
 void DACClass::begin(uint32_t period) {
 	// Enable clock for DAC
@@ -85,10 +86,24 @@ void DACClass::end() {
 }
 
 bool DACClass::canQueue() {
+#ifdef DAC_ONE_QUEUE
+  return (dac->DACC_TCR == 0);
+#else
 	return (dac->DACC_TNCR == 0);
+#endif
 }
 
 size_t DACClass::queueBuffer(const uint32_t *buffer, size_t size) {
+#ifdef DAC_ONE_QUEUE
+  if (dac->DACC_TCR == 0) {
+    dac->DACC_TPR = (uint32_t) buffer;
+    dac->DACC_TCR = size;
+    dac->DACC_PTCR = DACC_PTCR_TXTEN;
+    if (cb)
+      dacc_enable_interrupt(dac, DACC_IER_ENDTX);
+    return size;
+  }
+#else
 	// Try the first PDC buffer
 	if ((dac->DACC_TCR == 0) && (dac->DACC_TNCR == 0)) {
 		dac->DACC_TPR = (uint32_t) buffer;
@@ -108,6 +123,7 @@ size_t DACClass::queueBuffer(const uint32_t *buffer, size_t size) {
 			dacc_enable_interrupt(dac, DACC_IER_ENDTX);
 		return size;
 	}
+#endif
 
 	// PDC buffers full, try again later...
 	return 0;

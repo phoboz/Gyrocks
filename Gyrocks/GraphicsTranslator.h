@@ -31,7 +31,9 @@ private:
   void move(uint16_t x, uint16_t y);
 
   static const int MAX_BUFFERS = 2;
-  static const int dwellAfterMove;
+  static const int dwellAfterMove = 10;
+  static const int Z_BLANK_PIN = 38;
+  static const int MAX_PENS = 2;
   
 	uint32_t bufferSize;
   uint32_t *buffer;
@@ -41,8 +43,12 @@ private:
   int bufferCounter;
   uint32_t *currBuffer;
 
+  struct PenStruct {
+    uint8_t r, g, b;
+  } pens[MAX_PENS];
+
   uint16_t currX, currY;
-  uint8_t currPen;
+  uint8_t currPen, flushedPen;
 
 	DACClass *dac;
 };
