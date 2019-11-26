@@ -66,7 +66,7 @@ void setupRGBDAC()
   writeDACregister(RED,0);
   writeDACregister(GREEN,0);
   writeDACregister(BLUE,0);  
-  writeDACregister(SIZE,255);  // default to max (SIZE won't be changed in current design)
+  writeDACregister(SIZE,175);  // default to max (SIZE won't be changed in current design)
   
   digitalWrite(RGB_LDAC, 0);
   digitalWrite(RGB_LDAC, 1); 

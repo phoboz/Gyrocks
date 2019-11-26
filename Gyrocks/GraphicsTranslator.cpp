@@ -33,7 +33,7 @@ void GraphicsTranslatorClass::begin(uint32_t _bufferSize) {
   currPen = 0;
 
   pens[0].r = pens[0].g = pens[0].b = 0;
-  pens[1].r = pens[1].g = pens[1].b = 255;
+  pens[1].r = pens[1].g = pens[1].b = 175;
 
   pinMode(Z_BLANK_PIN, OUTPUT);
   digitalWrite(Z_BLANK_PIN, LOW);
