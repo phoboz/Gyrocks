@@ -13,7 +13,7 @@
 
 #include "Arduino.h"
 
-#define RESOLUTION_2K
+#define RESOLUTION_1K
 
 #if defined(RESOLUTION_1K)
 #define DAC_PACK_COORD(_x, _y) (((0x0FFF & (_x)) << 2) | ((0x0FFF & (_y)) << 18) | 0x10000000)
