@@ -114,9 +114,7 @@ void GraphicsTranslatorClass::move(uint16_t x, uint16_t y) {
         break;
       }
     }
-    if (bufferCounter == bufferSize) {
-      nextBuffer();
-    }
+    nextBuffer();
   }
   else {
     currX = x;
