@@ -11,8 +11,8 @@
 bool GraphicsTranslatorClass::interpolate_move = true;
 
 void GraphicsTranslatorClass::begin(uint32_t _bufferSize) {
-  if (_bufferSize < (dwellBeforeMove + dwellAfterMove)) {
-    bufferSize = dwellBeforeMove + dwellAfterMove;
+  if (_bufferSize < 1024) {
+    bufferSize = 1024;
   }
 	bufferSize = _bufferSize;
 	buffer = (uint32_t *) malloc(MAX_BUFFERS * bufferSize * sizeof(uint32_t));
@@ -104,6 +104,7 @@ void GraphicsTranslatorClass::pen_enable(uint8_t D) {
 
 void GraphicsTranslatorClass::move(uint16_t x, uint16_t y) {
   int counter;
+  int len, dwell;
   
   if (interpolate_move) {
 
@@ -116,12 +117,15 @@ void GraphicsTranslatorClass::move(uint16_t x, uint16_t y) {
       counter++;
     }
 
+    len = max(abs(x - currX), abs(y - currY));
+    dwell = len >> 2;
+  
     currX = x;
     currY = y;
 
     counter = 0;
-    while(counter < dwellAfterMove) {
-      currBuffer[bufferCounter++] = DAC_PACK_COORD(x, y);
+    while(counter < dwell) {
+      currBuffer[bufferCounter++] = DAC_PACK_COORD(currX, currY);
       counter++;
       if (bufferCounter == bufferSize) {
         break;

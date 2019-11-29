@@ -32,7 +32,6 @@ private:
 
   static const int MAX_BUFFERS = 2;
   static const int dwellBeforeMove = 10;
-  static const int dwellAfterMove = 10;
   static const int Z_BLANK_PIN = 38;
   static const int MAX_PENS = 2;
   
