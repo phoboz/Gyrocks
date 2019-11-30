@@ -21,6 +21,8 @@ public:
   void pen_enable(uint8_t D);
   void plot_absolute(uint16_t X, uint16_t Y);
 
+  void pen_RGB(int penID, uint8_t R, uint8_t G, uint8_t B);
+  
   static bool interpolate_move;
 
 private:
@@ -33,7 +35,7 @@ private:
   static const int MAX_BUFFERS = 2;
   static const int dwellBeforeMove = 10;
   static const int Z_BLANK_PIN = 38;
-  static const int MAX_PENS = 2;
+  static const int MAX_PENS = 12;
   
 	uint32_t bufferSize;
   uint32_t *buffer;

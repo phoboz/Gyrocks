@@ -44,6 +44,12 @@
 #define SIZE_SHIFT  2
 #define BUFFER_SIZE 1024
 
+#define DEFAULT_PEN   1
+#define ROCK_PEN      2
+#define ENEMY_PEN     3
+#define SHIP_PEN      4
+#define BULLET_PEN    5
+
 /*  *********************** Game Stuff ***************************************************/
 
 // Rock
@@ -132,6 +138,9 @@ enemy_t e[MAX_ENEMY];
 
 // Infos zum Schiff/Ship speichern
 ship_t ship;
+
+// Current pen
+int currPen = DEFAULT_PEN;
 
 // Punktezähler
 unsigned int score;
@@ -238,7 +247,7 @@ void lineto(int x, int y)
   py = y & 0xFFF;
 #endif
 
-  GraphicsTranslator.pen_enable(1);
+  GraphicsTranslator.pen_enable(currPen);
   GraphicsTranslator.plot_absolute(px >> SIZE_SHIFT, py >> SIZE_SHIFT);
 
 }
@@ -285,6 +294,12 @@ void draw_string(const char * s, int x, int y, int size)
 void setup()
 {
   Serial.begin(9600); // baud rate is ignored
+
+  GraphicsTranslator.pen_RGB(ROCK_PEN, 0xB5, 0x65, 0x1D);
+  GraphicsTranslator.pen_RGB(ENEMY_PEN, 0x00, 0xFF, 0x00);
+  GraphicsTranslator.pen_RGB(SHIP_PEN, 0x00, 0x00, 0xFF);
+  GraphicsTranslator.pen_RGB(BULLET_PEN, 0xFF, 0x00, 0x00);
+  
   GraphicsTranslator.begin(BUFFER_SIZE);
 #ifdef SLOW_MOVE
   GraphicsTranslator.interpolate_move = true;  
@@ -660,13 +675,26 @@ void video()
   ship.x = constrain(ship.x, 400, 3700);
   ship.y = constrain(ship.y, 400, 3700);
 
+  currPen = DEFAULT_PEN;
   update_stars(s);
+
+  currPen = BULLET_PEN;
   update_bullets(b);
+
+  currPen = ROCK_PEN;
   update_rocks(r);
+  
   if (rand() % 500 == 1) add_rock(r);
+
+  currPen = ENEMY_PEN;
   update_enemies(e);
+  
   if (rand() % 500 == 1) add_enemy(e);
+
+  currPen = SHIP_PEN;
   update_ship(&ship);
+
+  currPen = DEFAULT_PEN;
   draw_field();
 }
 
