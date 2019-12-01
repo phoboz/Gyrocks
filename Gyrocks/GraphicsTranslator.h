@@ -32,7 +32,7 @@ private:
   void line(uint16_t x, uint16_t y);
   void move(uint16_t x, uint16_t y);
 
-  static const int MAX_BUFFERS = 2;
+  static const int MAX_BUFFERS = 3;
   static const int dwellBeforeMove = 10;
   static const int Z_BLANK_PIN = 38;
   static const int MAX_PENS = 12;

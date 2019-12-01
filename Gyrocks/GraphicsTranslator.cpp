@@ -81,7 +81,10 @@ void GraphicsTranslatorClass::nextBuffer() {
   if (currBuffer == buffers[0]) {
     currBuffer = buffers[1];
   }
-  else if (currBuffer == buffers[1]) {
+    if (currBuffer == buffers[1]) {
+    currBuffer = buffers[2];
+  }
+  else if (currBuffer == buffers[2]) {
     currBuffer = buffers[0];
   }
 }
