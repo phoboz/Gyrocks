@@ -202,9 +202,9 @@ void GraphicsTranslatorClass::plot_absolute(uint16_t X, uint16_t Y) {
 
 void GraphicsTranslatorClass::pen_RGB(int penID, uint8_t R, uint8_t G, uint8_t B) {
   if (penID > 0 && penID < MAX_PENS) {
-    pens[0].r = R;
-    pens[0].g = G;
-    pens[0].b = B;
+    pens[penID].r = R;
+    pens[penID].g = G;
+    pens[penID].b = B;
   }
 }
 

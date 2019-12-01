@@ -293,14 +293,12 @@ void draw_string(const char * s, int x, int y, int size)
 /* Setup all */
 void setup()
 {
-  Serial.begin(9600); // baud rate is ignored
-
+  Serial.begin(9600); // baud rate is ignored  
+  GraphicsTranslator.begin(BUFFER_SIZE);
   GraphicsTranslator.pen_RGB(ROCK_PEN, 0xB5, 0x65, 0x1D);
   GraphicsTranslator.pen_RGB(ENEMY_PEN, 0x00, 0xFF, 0x00);
   GraphicsTranslator.pen_RGB(SHIP_PEN, 0x00, 0x00, 0xFF);
   GraphicsTranslator.pen_RGB(BULLET_PEN, 0xFF, 0x00, 0x00);
-  
-  GraphicsTranslator.begin(BUFFER_SIZE);
 #ifdef SLOW_MOVE
   GraphicsTranslator.interpolate_move = true;  
 #else
