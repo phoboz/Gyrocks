@@ -48,7 +48,6 @@
 #define ROCK_PEN      2
 #define ENEMY_PEN     3
 #define SHIP_PEN      4
-#define BULLET_PEN    5
 
 /*  *********************** Game Stuff ***************************************************/
 
@@ -295,10 +294,9 @@ void setup()
 {
   Serial.begin(9600); // baud rate is ignored  
   GraphicsTranslator.begin(BUFFER_SIZE);
-  GraphicsTranslator.pen_RGB(ROCK_PEN, 0xB5, 0x65, 0x1D);
+  GraphicsTranslator.pen_RGB(ROCK_PEN, 0xFF, 0x00, 0x00);
   GraphicsTranslator.pen_RGB(ENEMY_PEN, 0x00, 0xFF, 0x00);
   GraphicsTranslator.pen_RGB(SHIP_PEN, 0x00, 0x00, 0xFF);
-  GraphicsTranslator.pen_RGB(BULLET_PEN, 0xFF, 0x00, 0x00);
 #ifdef SLOW_MOVE
   GraphicsTranslator.interpolate_move = true;  
 #else
@@ -676,7 +674,7 @@ void video()
   currPen = DEFAULT_PEN;
   update_stars(s);
 
-  currPen = BULLET_PEN;
+  currPen = SHIP_PEN;
   update_bullets(b);
 
   currPen = ROCK_PEN;
