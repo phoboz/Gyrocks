@@ -6,6 +6,7 @@
  */
 
 #include "RGBDAC.h"
+#include "hershey_font.h"
 #include "GraphicsTranslator.h"
 
 bool GraphicsTranslatorClass::interpolate_move = true;
@@ -22,6 +23,8 @@ void GraphicsTranslatorClass::begin(uint32_t _bufferSize) {
     buffers[i] = p_buf;
     p_buf += bufferSize;
   }
+
+  character_size(1);
   
   freeBuffers = MAX_BUFFERS;
   bufferCounter = 0;
@@ -201,6 +204,89 @@ void GraphicsTranslatorClass::plot_absolute(uint16_t X, uint16_t Y) {
   else {  
     move(X, Y);
   }
+}
+
+void GraphicsTranslatorClass::character_size(uint8_t D) {
+  if (D < 4) {
+    fontSizeShift = D;
+    fontDirection = FONT_DIR_HORIZONTAL;
+  }
+  else if (D < 8) {
+    fontSizeShift = D - 4;
+    fontDirection = FONT_DIR_VERTICAL;
+  }  
+}
+
+int GraphicsTranslatorClass::draw_character_horizontal(char c, int x, int y, uint8_t penID) {
+  const hershey_char_t * const f = &hershey_simplex[c - ' '];
+  int next_moveto = 1;
+
+  for (int i = 0 ; i < f->count ; i++) {
+    int dx = f->points[(i << 1) + 0];
+    int dy = f->points[(i << 1) + 1];
+    if (dx == -1) {
+      next_moveto = 1;
+      continue;
+    }
+    dx = (dx << fontSizeShift);
+    dy = (dy << fontSizeShift);
+    if (next_moveto) {
+      pen_enable(0);
+      move(x + dx, dy + y);
+    }
+    else {
+      pen_enable(penID);
+      line(x + dx, dy + y);
+    }
+    next_moveto = 0;
+  }
+  return (f->width << fontSizeShift);
+}
+
+int GraphicsTranslatorClass::draw_character_vertical(char c, int x, int y, uint8_t penID) {
+  const hershey_char_t * const f = &hershey_simplex[c - ' '];
+  int next_moveto = 1;
+
+  for (int i = 0 ; i < f->count ; i++) {
+    int dy = f->points[(i << 1) + 0];
+    int dx = f->points[(i << 1) + 1];
+    if (dy == -1) {
+      next_moveto = 1;
+      continue;
+    }
+    dx = (dx << fontSizeShift);
+    dy = (dy << fontSizeShift);
+    if (next_moveto) {
+      pen_enable(0);
+      move(x + dx, dy + y);
+    }
+    else {
+      pen_enable(penID);
+      line(x + dx, dy + y);
+    }
+    next_moveto = 0;
+  }
+  return (f->width << fontSizeShift);
+}
+
+void GraphicsTranslatorClass::text(const char * s) {
+  int x = currX, y = currY;
+  uint8_t penID = currPen;
+
+  if (fontDirection == FONT_DIR_HORIZONTAL) {
+    while (*s != 0) {
+      char c = *s++;
+      x += draw_character_horizontal(c, x, y, penID);
+    }
+  }
+  else if (fontDirection == FONT_DIR_VERTICAL) {
+    while (*s != 0) {
+      char c = *s++;
+      y += draw_character_vertical(c, x, y, penID);
+    }
+  }
+
+  currPen = penID;
 }
 
 void GraphicsTranslatorClass::pen_RGB(int penID, uint8_t R, uint8_t G, uint8_t B) {

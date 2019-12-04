@@ -40,6 +40,7 @@
 //#define FLIP_X
 //#define FLIP_Y
 #define SLOW_MOVE
+//#define TEXT_ENGINE
 
 #define SIZE_SHIFT  2
 #define BUFFER_SIZE 1024
@@ -280,11 +281,18 @@ int draw_character(char c, int x, int y, int size)
 
 void draw_string(const char * s, int x, int y, int size)
 {
+#ifndef TEXT_ENGINE
   while (*s)
   {
     char c = *s++;
     x += draw_character(c, x, y, size);
   }
+#else
+  GraphicsTranslator.pen_enable(0);
+  GraphicsTranslator.plot_absolute(x >> SIZE_SHIFT, y >> SIZE_SHIFT);
+  GraphicsTranslator.pen_enable(DEFAULT_PEN);
+  GraphicsTranslator.text(s);
+#endif
 }
 
 
@@ -302,6 +310,7 @@ void setup()
 #else
   GraphicsTranslator.interpolate_move = false;  
 #endif
+  GraphicsTranslator.character_size(0);
   init_stars(s);
 }
 
