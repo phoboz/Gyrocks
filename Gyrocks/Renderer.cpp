@@ -7,11 +7,11 @@
 
 #include "RGBDAC.h"
 #include "hershey_font.h"
-#include "GraphicsTranslator.h"
+#include "Renderer.h"
 
-bool GraphicsTranslatorClass::interpolate_move = true;
+bool RendererClass::interpolate_move = true;
 
-void GraphicsTranslatorClass::begin(uint32_t _bufferSize) {
+void RendererClass::begin(uint32_t _bufferSize) {
   if (_bufferSize < 1024) {
     bufferSize = 1024;
   }
@@ -50,13 +50,13 @@ void GraphicsTranslatorClass::begin(uint32_t _bufferSize) {
 	dac->setOnTransmitEnd_CB(onTransmitEnd, this);
 }
 
-void GraphicsTranslatorClass::end() {
+void RendererClass::end() {
   frame_end();
 	dac->end();
 	free(buffer);
 }
 
-void GraphicsTranslatorClass::nextBuffer() {
+void RendererClass::nextBuffer() {
   if (!bufferCounter) {
     return;
   }
@@ -92,14 +92,14 @@ void GraphicsTranslatorClass::nextBuffer() {
   }
 }
 
-void GraphicsTranslatorClass::frame_end() {
+void RendererClass::frame_end() {
   nextBuffer();
 
   pen_enable(0);
   move(0, 0);
 }
 
-void GraphicsTranslatorClass::pen_enable(uint8_t D) {
+void RendererClass::pen_enable(uint8_t D) {
   if (D < MAX_PENS) {
     if (currPen != D) {
       nextBuffer();
@@ -108,7 +108,7 @@ void GraphicsTranslatorClass::pen_enable(uint8_t D) {
   }
 }
 
-void GraphicsTranslatorClass::move(uint16_t x, uint16_t y) {
+void RendererClass::move(uint16_t x, uint16_t y) {
   int counter;
   int len, dwell;
   
@@ -146,7 +146,7 @@ void GraphicsTranslatorClass::move(uint16_t x, uint16_t y) {
   }
 }
 
-void GraphicsTranslatorClass::line(uint16_t x, uint16_t y) {
+void RendererClass::line(uint16_t x, uint16_t y) {
   int16_t dx, dy;
   int16_t sx, sy;
   uint16_t x0, y0;
@@ -197,7 +197,7 @@ void GraphicsTranslatorClass::line(uint16_t x, uint16_t y) {
   nextBuffer();
 }
 
-void GraphicsTranslatorClass::plot_absolute(uint16_t X, uint16_t Y) { 
+void RendererClass::plot_absolute(uint16_t X, uint16_t Y) { 
   if (currPen) {
     line(X, Y);
   }
@@ -206,7 +206,7 @@ void GraphicsTranslatorClass::plot_absolute(uint16_t X, uint16_t Y) {
   }
 }
 
-void GraphicsTranslatorClass::character_size(uint8_t D) {
+void RendererClass::character_size(uint8_t D) {
   if (D < 4) {
     fontSizeShift = D;
     fontDirection = FONT_DIR_HORIZONTAL;
@@ -217,7 +217,7 @@ void GraphicsTranslatorClass::character_size(uint8_t D) {
   }  
 }
 
-int GraphicsTranslatorClass::draw_character_horizontal(char c, int x, int y, uint8_t penID) {
+int RendererClass::draw_character_horizontal(char c, int x, int y, uint8_t penID) {
   const hershey_char_t * const f = &hershey_simplex[c - ' '];
   int next_moveto = 1;
 
@@ -243,7 +243,7 @@ int GraphicsTranslatorClass::draw_character_horizontal(char c, int x, int y, uin
   return (f->width << fontSizeShift);
 }
 
-int GraphicsTranslatorClass::draw_character_vertical(char c, int x, int y, uint8_t penID) {
+int RendererClass::draw_character_vertical(char c, int x, int y, uint8_t penID) {
   const hershey_char_t * const f = &hershey_simplex[c - ' '];
   int next_moveto = 1;
 
@@ -269,7 +269,7 @@ int GraphicsTranslatorClass::draw_character_vertical(char c, int x, int y, uint8
   return (f->width << fontSizeShift);
 }
 
-void GraphicsTranslatorClass::text(const char * s) {
+void RendererClass::text(const char * s) {
   int x = currX, y = currY;
   uint8_t penID = currPen;
 
@@ -289,7 +289,7 @@ void GraphicsTranslatorClass::text(const char * s) {
   currPen = penID;
 }
 
-void GraphicsTranslatorClass::pen_RGB(int penID, uint8_t R, uint8_t G, uint8_t B) {
+void RendererClass::pen_RGB(int penID, uint8_t R, uint8_t G, uint8_t B) {
   if (penID > 0 && penID < MAX_PENS) {
     pens[penID].r = R;
     pens[penID].g = G;
@@ -297,8 +297,8 @@ void GraphicsTranslatorClass::pen_RGB(int penID, uint8_t R, uint8_t G, uint8_t B
   }
 }
 
-void GraphicsTranslatorClass::onTransmitEnd(void *_me) {
-	GraphicsTranslatorClass *me = reinterpret_cast<GraphicsTranslatorClass *> (_me);
+void RendererClass::onTransmitEnd(void *_me) {
+	RendererClass *me = reinterpret_cast<RendererClass *> (_me);
   digitalWrite(Z_BLANK_PIN, LOW);
   
   if (++me->freeBuffers > me->MAX_BUFFERS) {
@@ -306,4 +306,4 @@ void GraphicsTranslatorClass::onTransmitEnd(void *_me) {
   }
 }
 
-GraphicsTranslatorClass GraphicsTranslator(DAC);
+RendererClass Renderer(DAC);

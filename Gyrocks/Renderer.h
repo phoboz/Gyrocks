@@ -5,15 +5,15 @@
  * published by the Free Software Foundation.
  */
 
-#ifndef GRAPHICS_TRANSLATOR_H
-#define GRAPHICS_TRANSLATOR_H
+#ifndef RENDERER_H
+#define RENDERER_H
 
 #include "Arduino.h"
 #include "DAC.h"
 
-class GraphicsTranslatorClass {
+class RendererClass {
 public:
-	GraphicsTranslatorClass(DACClass &_dac) : dac(&_dac) { };
+	RendererClass(DACClass &_dac) : dac(&_dac) { };
 	void begin(uint32_t _bufferSize);
 	void end();
   void frame_end();
@@ -67,6 +67,6 @@ private:
 	DACClass *dac;
 };
 
-extern GraphicsTranslatorClass GraphicsTranslator;
+extern RendererClass Renderer;
 
 #endif

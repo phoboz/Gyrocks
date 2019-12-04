@@ -30,7 +30,7 @@
 
 #include <math.h>
 
-#include "GraphicsTranslator.h"
+#include "Renderer.h"
 #include "hershey_font.h"
 #include "objects.h"
 
@@ -219,8 +219,8 @@ void moveto(int x, int y)
   py = y & 0xFFF;
 #endif
 
-  GraphicsTranslator.pen_enable(0);
-  GraphicsTranslator.plot_absolute(px >> SIZE_SHIFT, py >> SIZE_SHIFT);
+  Renderer.pen_enable(0);
+  Renderer.plot_absolute(px >> SIZE_SHIFT, py >> SIZE_SHIFT);
 }
 
 
@@ -247,8 +247,8 @@ void lineto(int x, int y)
   py = y & 0xFFF;
 #endif
 
-  GraphicsTranslator.pen_enable(currPen);
-  GraphicsTranslator.plot_absolute(px >> SIZE_SHIFT, py >> SIZE_SHIFT);
+  Renderer.pen_enable(currPen);
+  Renderer.plot_absolute(px >> SIZE_SHIFT, py >> SIZE_SHIFT);
 
 }
 
@@ -288,10 +288,10 @@ void draw_string(const char * s, int x, int y, int size)
     x += draw_character(c, x, y, size);
   }
 #else
-  GraphicsTranslator.pen_enable(0);
-  GraphicsTranslator.plot_absolute(x >> SIZE_SHIFT, y >> SIZE_SHIFT);
-  GraphicsTranslator.pen_enable(DEFAULT_PEN);
-  GraphicsTranslator.text(s);
+  Renderer.pen_enable(0);
+  Renderer.plot_absolute(x >> SIZE_SHIFT, y >> SIZE_SHIFT);
+  Renderer.pen_enable(DEFAULT_PEN);
+  Renderer.text(s);
 #endif
 }
 
@@ -301,16 +301,16 @@ void draw_string(const char * s, int x, int y, int size)
 void setup()
 {
   Serial.begin(9600); // baud rate is ignored  
-  GraphicsTranslator.begin(BUFFER_SIZE);
-  GraphicsTranslator.pen_RGB(ROCK_PEN, 0xFF, 0x00, 0x00);
-  GraphicsTranslator.pen_RGB(ENEMY_PEN, 0x00, 0xFF, 0x00);
-  GraphicsTranslator.pen_RGB(SHIP_PEN, 0x00, 0x00, 0xFF);
+  Renderer.begin(BUFFER_SIZE);
+  Renderer.pen_RGB(ROCK_PEN, 0xFF, 0x00, 0x00);
+  Renderer.pen_RGB(ENEMY_PEN, 0x00, 0xFF, 0x00);
+  Renderer.pen_RGB(SHIP_PEN, 0x00, 0x00, 0xFF);
 #ifdef SLOW_MOVE
-  GraphicsTranslator.interpolate_move = true;  
+  Renderer.interpolate_move = true;  
 #else
-  GraphicsTranslator.interpolate_move = false;  
+  Renderer.interpolate_move = false;  
 #endif
-  GraphicsTranslator.character_size(0);
+  Renderer.character_size(0);
   init_stars(s);
 }
 
@@ -735,6 +735,6 @@ void loop() {
 #endif
 #endif
 
-  GraphicsTranslator.frame_end();
+  Renderer.frame_end();
   fps = 1000000 / (micros() - start_time);
 }
