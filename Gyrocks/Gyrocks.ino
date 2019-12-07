@@ -31,6 +31,7 @@
 #include <math.h>
 
 #include "Renderer.h"
+#include "RenderBuffer.h"
 #include "hershey_font.h"
 #include "objects.h"
 
@@ -41,6 +42,7 @@
 //#define FLIP_Y
 #define SLOW_MOVE
 //#define TEXT_ENGINE
+//#define TEST_SWITCH
 
 #define SIZE_SHIFT  2
 #define BUFFER_SIZE 1024
@@ -296,6 +298,103 @@ void draw_string(const char * s, int x, int y, int size)
 }
 
 
+void moveto_buf(int x, int y)
+{
+  uint16_t px, py;
+  
+  //Test!  Very stupid "Clipping"
+  if (x >= 4096) x = 4095;
+  if (y >= 4096) y = 4095;
+  if (x < 0) x = 0;
+  if (y < 0) y = 0;
+
+  #ifdef FLIP_X
+  px = 4095 - (x & 0xFFF);
+#else
+  px = x & 0xFFF;
+#endif
+
+#ifdef FLIP_Y
+  py = 4095 - (y & 0xFFF);
+#else
+  py = y & 0xFFF;
+#endif
+
+  RenderBuffer.pe(0);
+  RenderBuffer.pa(px >> SIZE_SHIFT, py >> SIZE_SHIFT);
+}
+
+
+void lineto_buf(int x, int y)
+{
+  uint16_t px, py;
+  
+  //Test!  Very stupid "Clipping"
+  //if (x>=4096 ||x<0 ||y>4096 || y<0) return; //don't draw at all
+  if (x >= 4096) x = 4095;
+  if (y >= 4096) y = 4095;
+  if (x < 0) x = 0;
+  if (y < 0) y = 0;
+
+#ifdef FLIP_X
+  px = 4095 - (x & 0xFFF);
+#else
+  px = x & 0xFFF;
+#endif
+
+#ifdef FLIP_Y
+  py = 4095 - (y & 0xFFF);
+#else
+  py = y & 0xFFF;
+#endif
+
+  RenderBuffer.pe(currPen);
+  RenderBuffer.pa(px >> SIZE_SHIFT, py >> SIZE_SHIFT);
+
+}
+
+
+void draw_grid_buf(int sx, int sy) {
+  int num_x = 4096 / sx + 1;
+  int x = 0;
+  moveto_buf(0, 0);
+  for (int i = 0; i < num_x; i++) {
+    lineto_buf(x, 4095);
+    x += sx;
+    moveto_buf(x, 0);
+  }
+
+  int num_y = 4096 / sy + 1;
+  int y = 0;
+  moveto_buf(0, 0);
+  for (int i = 0; i < num_y; i++) {
+    lineto_buf(4095, y);
+    y += sy;
+    moveto_buf(0, y);
+  }
+}
+
+
+void draw_field_buf()
+{
+#define CORNER 500
+  moveto_buf(0, CORNER);
+  lineto_buf(0, 0);
+  lineto_buf(CORNER, 0);
+
+  moveto_buf(4095 - CORNER, 0);
+  lineto_buf(4095, 0);
+  lineto_buf(4095, CORNER);
+
+  moveto_buf(4095, 4095 - CORNER);
+  lineto_buf(4095, 4095);
+  lineto_buf(4095 - CORNER, 4095);
+
+  moveto_buf(CORNER, 4095);
+  lineto_buf(0, 4095);
+  lineto_buf(0, 4095 - CORNER);
+#undef CORNER
+}
 
 /* Setup all */
 void setup()
@@ -311,6 +410,14 @@ void setup()
   Renderer.interpolate_move = false;  
 #endif
   Renderer.character_size(0);
+
+  RenderBuffer.begin(1024);
+  currPen = DEFAULT_PEN;
+  RenderBuffer.nf(1);
+  draw_grid_buf(256, 256);
+  RenderBuffer.nf(2);
+  draw_field_buf();
+  
   init_stars(s);
 }
 
@@ -709,6 +816,7 @@ void video()
 void loop() {
   long start_time = micros();
 
+#ifndef TEST_SWITCH
 #ifdef ENABLE_CONTROLS
 #undef HALT
 #ifdef HALT
@@ -733,6 +841,10 @@ void loop() {
 #ifdef HALT
   }
 #endif
+#endif
+
+#else
+  RenderBuffer.render(1);
 #endif
 
   Renderer.frame_end();
