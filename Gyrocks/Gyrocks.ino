@@ -42,7 +42,6 @@
 //#define FLIP_Y
 #define SLOW_MOVE
 //#define TEXT_ENGINE
-//#define TEST_SWITCH
 
 #define SIZE_SHIFT  2
 #define BUFFER_SIZE 1024
@@ -51,6 +50,12 @@
 #define ROCK_PEN      2
 #define ENEMY_PEN     3
 #define SHIP_PEN      4
+
+#define NUM_CONFIG_PINS 2
+#define CONFIG_PIN_1    13
+#define CONFIG_PIN_2    12
+
+static int config_pins[] = {CONFIG_PIN_1, CONFIG_PIN_2};
 
 /*  *********************** Game Stuff ***************************************************/
 
@@ -298,6 +303,21 @@ void draw_string(const char * s, int x, int y, int size)
 }
 
 
+uint8_t read_config()
+{
+  uint8_t value = 0;
+
+  for (int i = 0; i < NUM_CONFIG_PINS; i++)
+  {
+    if (digitalRead(config_pins[i]) == LOW)
+    {
+      value |= (0x01 << i);
+    }
+  }
+
+  return value;
+}
+
 void moveto_buf(int x, int y)
 {
   uint16_t px, py;
@@ -400,6 +420,11 @@ void draw_field_buf()
 void setup()
 {
   Serial.begin(9600); // baud rate is ignored  
+
+  for (int i = 0; i < NUM_CONFIG_PINS; i++) {
+    pinMode(config_pins[i], INPUT);
+  }
+  
   Renderer.begin(BUFFER_SIZE);
   Renderer.pen_RGB(ROCK_PEN, 0xFF, 0x00, 0x00);
   Renderer.pen_RGB(ENEMY_PEN, 0x00, 0xFF, 0x00);
@@ -815,37 +840,40 @@ void video()
 // Hauptfunktion
 void loop() {
   long start_time = micros();
+  uint8_t mode = read_config();
 
-#ifndef TEST_SWITCH
+  if (mode == 1)
+  {
+    RenderBuffer.render(1);
+  }
+  else
+  {
 #ifdef ENABLE_CONTROLS
 #undef HALT
 #ifdef HALT
-  // HALTing Game (Debug&Screenshot)
-  if (!digitalRead(BUTT) == HIGH)
-  {
+    // HALTing Game (Debug&Screenshot)
+    if (!digitalRead(BUTT) == HIGH)
+    {
 #endif
 #endif
 
-    char buf[12];
+      char buf[12];
 
-    video();
-    // Punktezähler ausgeben
-    draw_string("Points:", 100, 150, 6);
-    draw_string(itoa(score, buf, 10), 800, 150, 6);
+      video();
+      // Punktezähler ausgeben
+      draw_string("Points:", 100, 150, 6);
+      draw_string(itoa(score, buf, 10), 800, 150, 6);
 
-    // FPS Todo: Debug Switch?!
-    draw_string("FPS:", 3000, 150, 6);
-    draw_string(itoa(fps, buf, 10), 3400, 150, 6);
+      // FPS Todo: Debug Switch?!
+      draw_string("FPS:", 3000, 150, 6);
+      draw_string(itoa(fps, buf, 10), 3400, 150, 6);
 
 #ifdef ENABLE_CONTROLS
 #ifdef HALT
+    }
+#endif
+#endif
   }
-#endif
-#endif
-
-#else
-  RenderBuffer.render(1);
-#endif
 
   Renderer.frame_end();
   fps = 1000000 / (micros() - start_time);
